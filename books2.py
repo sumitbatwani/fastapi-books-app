@@ -1,6 +1,6 @@
 from typing import Optional
 from uuid import UUID
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 app = FastAPI()
@@ -44,6 +44,7 @@ async def read_book(book_id: UUID):
     for x in BOOKS:
         if x.id == book_id:
             return x
+    raise raise_item_not_found_expection()
 
 @app.put("/{book_id}")
 async def update_book(book_id: UUID, book: Book):
@@ -54,6 +55,7 @@ async def update_book(book_id: UUID, book: Book):
         if x.id == book_id:
             BOOKS[counter - 1] = book
             return BOOKS[counter - 1]
+    raise raise_item_not_found_expection()
 
 @app.delete("/{book_id}")
 async def delete_book(book_id: UUID):
@@ -64,11 +66,15 @@ async def delete_book(book_id: UUID):
         if x.id == book_id:
             del BOOKS[counter - 1]
             return f'ID {book_id} deleted.'
+    raise raise_item_not_found_expection()
 
 @app.post("/")
 async def create_book(book: Book):
     BOOKS.append(book)
     return book
+
+def raise_item_not_found_expection():
+    return HTTPException(status_code=404, detail="Book not found", headers={"X-Header-Error": "Nothing to see."})
 
 def initialize_book_api():
     book_1 = Book(
