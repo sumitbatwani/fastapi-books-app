@@ -77,3 +77,18 @@ async def delete_book(book_name: str):
     return f'{book_name} deleted.'
 
 # end
+
+# assignment 1
+'''
+1. Create a new read book function that uses query params instead of path params.
+2. Create a new delete book function that use query params instead of path params.
+'''
+
+@app.get("/assignment/")
+def read_book(book_name: str):
+    return BOOKS[book_name]
+
+@app.delete("/assignment/")
+def delete_book(book_name: str):
+    del BOOKS[book_name]
+    return BOOKS
