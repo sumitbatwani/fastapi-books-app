@@ -10,7 +10,6 @@ app = FastAPI()
 
 @app.exception_handler(UserNameNoneException)
 async def username_none_expection_handler(request: Request, exception: UserNameNoneException):
-    print(request)
     return JSONResponse(status_code=404, content={"message": f"{exception.username} username is not valid"})
 
 @app.get("/")
