@@ -1,9 +1,19 @@
 from typing import Optional
+from urllib.request import Request
 from uuid import UUID
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Form, HTTPException, Header, status
 from pydantic import BaseModel, Field
+from starlette.responses import JSONResponse
+
+class NegativeNumberException(Exception):
+    def __init__(self, book_to_return):
+        self.book_to_return = book_to_return
 
 app = FastAPI()
+
+@app.exception_handler(NegativeNumberException)
+async def negative_number_exception_handler(request: Request, exception: NegativeNumberException):
+    return JSONResponse(status_code=418, content={"message": f"why do you need {exception.book_to_return} number?"})
 
 class Book(BaseModel):
     id: UUID
@@ -27,6 +37,9 @@ BOOKS = []
 
 @app.get("/")
 async def read_all_books(books_to_return: Optional[int] = None):
+    if books_to_return and books_to_return < 0:
+        raise NegativeNumberException(book_to_return=books_to_return)
+
     if len(BOOKS) < 1:
         initialize_book_api()
 
@@ -68,10 +81,18 @@ async def delete_book(book_id: UUID):
             return f'ID {book_id} deleted.'
     raise raise_item_not_found_expection()
 
-@app.post("/")
+@app.post("/", status_code=status.HTTP_201_CREATED)
 async def create_book(book: Book):
     BOOKS.append(book)
     return book
+
+@app.post("/books/login")
+async def create_book_login(username: str = Form(), password: str = Form()):
+    return {"username": username, "password": password}
+
+@app.get("/header")
+async def create_header(random_header: str = Header(None)):
+    return {"header": random_header}
 
 def raise_item_not_found_expection():
     return HTTPException(status_code=404, detail="Book not found", headers={"X-Header-Error": "Nothing to see."})
